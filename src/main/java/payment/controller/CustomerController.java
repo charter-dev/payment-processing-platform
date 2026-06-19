@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import payment.dto.CustomerRequest;
 import payment.dto.CustomerResponse;
@@ -30,7 +31,7 @@ public class CustomerController {
 
     @PostMapping
     @Operation(summary = "Create customer")
-    public CustomerResponse create(@RequestBody CustomerRequest request) {
+    public CustomerResponse create(@Valid @RequestBody CustomerRequest request) {
 
         log.info("POST /api/customers request={}", request);
 

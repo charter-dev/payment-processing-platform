@@ -1,10 +1,15 @@
 package payment.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class CustomerRequest {
-    private String name;
-    private String email;
-    private String phone;
+
+	@NotBlank(message = "name is required")
+	private String name;
+	@NotBlank(message = "email is required")
+	private String email;
+	@NotBlank(message = "phone is required")
+	private String phone;
 }
