@@ -2,6 +2,7 @@ package payment.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
@@ -20,6 +21,7 @@ public class CustomerService {
 	private static final Logger log = LoggerFactory.getLogger(CustomerService.class);
 
 	private final CustomerRepository repository;
+	private final RedisTemplate<String, Object> redisTemplate;
 
 	public CustomerResponse create(CustomerRequest request) {
 
@@ -32,6 +34,12 @@ public class CustomerService {
 
 		Customer saved = repository.save(entity);
 
+		try {
+			redisTemplate.opsForValue().set(saved.getCustomerId(), saved);
+			log.info("Cached customer to Redis customerId={}", saved.getCustomerId());
+		} catch (Exception e) {
+			log.error("REDIS ERROR customerId={}", saved.getCustomerId(), e);
+		}
 
 		return CustomerResponse.builder().customerId(saved.getCustomerId()).name(saved.getName())
 				.email(saved.getEmail()).build();
@@ -39,10 +47,28 @@ public class CustomerService {
 
 	public CustomerResponse getByCustomerId(String customerId) {
 
+		try {
+			Customer cache = (Customer) redisTemplate.opsForValue().get(customerId);
+
+			if (cache != null) {
+				log.info("CACHE HIT customerId={}", customerId);
+				return map(cache);
+			}
+
+			log.info("CACHE MISS customerId={}", customerId);
+
+		} catch (Exception e) {
+			log.error("REDIS GET ERROR customerId={}", customerId, e);
+		}
 
 		Customer customer = repository.findByCustomerId(customerId)
 				.orElseThrow(() -> new BusinessException("CUSTOMER_NOT_FOUND", "Customer not found: " + customerId));
 
+		try {
+			redisTemplate.opsForValue().set(customerId, customer);
+		} catch (Exception e) {
+			log.error("REDIS SET ERROR customerId={}", customerId, e);
+		}
 
 		return map(customer);
 	}
