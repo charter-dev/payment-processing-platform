@@ -1,5 +1,7 @@
 package payment.service;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -7,7 +9,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import payment.dto.CustomerRequest;
 import payment.dto.CustomerResponse;
+import payment.dto.PageResponse;
 import payment.entity.Customer;
 import payment.exception.BusinessException;
 import payment.repository.CustomerRepository;
@@ -33,12 +35,22 @@ public class CustomerService {
             value = "customers",
             key = "'page:' + #page + ':size:' + #size"
     )
-    public Page<CustomerResponse> getAll(int page, int size) {
+    public PageResponse<CustomerResponse> getAll(int page, int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+		Pageable pageable = PageRequest.of(page, size);
 
-        return repository.findAll(pageable)
-                .map(this::mapToResponse);
+	    Page<CustomerResponse> result = repository.findAll(pageable)
+	            .map(this::mapToResponse);
+
+	    List<CustomerResponse> content = result.getContent();
+
+	    return new PageResponse<CustomerResponse>(
+	            content,
+	            result.getNumber(),
+	            result.getSize(),
+	            result.getTotalElements(),
+	            result.getTotalPages()
+	    );
     }
 
 	 @CacheEvict(value = "customers", allEntries = true)

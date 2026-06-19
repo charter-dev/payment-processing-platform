@@ -3,7 +3,6 @@ package payment.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +18,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import payment.dto.CustomerRequest;
 import payment.dto.CustomerResponse;
+import payment.dto.PageResponse;
 import payment.service.CustomerService;
 
 @RestController
@@ -55,7 +55,7 @@ public class CustomerController {
             summary = "Get all customers (pagination)"
 //            ,description = "Retrieve customer data with pagination support"
     )
-    public Page<CustomerResponse> getAll(
+    public PageResponse<CustomerResponse> getAll(
             @Parameter()
             @RequestParam(defaultValue = "0") int page,
 

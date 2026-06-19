@@ -1,6 +1,7 @@
 package payment.service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -10,13 +11,13 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import payment.dto.PageResponse;
 import payment.dto.PaymentRequest;
 import payment.dto.PaymentResponse;
 import payment.entity.Customer;
@@ -46,12 +47,22 @@ public class PaymentService {
             value = "payments",
             key = "'page:' + #page + ':size:' + #size"
     )
-    public Page<PaymentResponse> getAll(int page, int size) {
+    public PageResponse<PaymentResponse> getAll(int page, int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+		Pageable pageable = PageRequest.of(page, size);
 
-        return paymentRepository.findAll(pageable)
-                .map(this::mapToResponse);
+	    Page<PaymentResponse> result = paymentRepository.findAll(pageable)
+	            .map(this::mapToResponse);
+
+	    List<PaymentResponse> content = result.getContent();
+
+	    return new PageResponse<PaymentResponse>(
+	            content,
+	            result.getNumber(),
+	            result.getSize(),
+	            result.getTotalElements(),
+	            result.getTotalPages()
+	    );
     }
 	
 	public PaymentResponse create(PaymentRequest request) {
