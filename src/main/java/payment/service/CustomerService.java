@@ -2,6 +2,12 @@ package payment.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +28,20 @@ public class CustomerService {
 
 	private final CustomerRepository repository;
 	private final RedisTemplate<String, Object> redisTemplate;
+	
+	@Cacheable(
+            value = "customers",
+            key = "'page:' + #page + ':size:' + #size"
+    )
+    public Page<CustomerResponse> getAll(int page, int size) {
 
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+
+        return repository.findAll(pageable)
+                .map(this::mapToResponse);
+    }
+
+	 @CacheEvict(value = "customers", allEntries = true)
 	public CustomerResponse create(CustomerRequest request) {
 
 		log.info("START create customer request={}", request);
@@ -77,6 +96,15 @@ public class CustomerService {
 		return CustomerResponse.builder().customerId(c.getCustomerId()).name(c.getName()).email(c.getEmail()).build();
 	}
 
+	 private CustomerResponse mapToResponse(Customer c) {
+	        return new CustomerResponse(
+	                c.getCustomerId(),
+	                c.getName(),
+	                c.getEmail(),
+	                c.getPhone()
+	        );
+	    }
+	
 	private String generateCustId() {
 		return "CUST-" + System.currentTimeMillis();
 	}

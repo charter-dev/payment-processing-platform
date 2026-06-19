@@ -4,14 +4,17 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import payment.dto.PaymentRequest;
@@ -25,35 +28,43 @@ import payment.service.PaymentService;
 @Tag(name = "Payment API", description = "Payment Processing System")
 public class PaymentController {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(PaymentController.class);
+	private static final Logger log = LoggerFactory.getLogger(PaymentController.class);
 
-    private final PaymentService service;
+	private final PaymentService service;
 
-    @PostMapping
-    @Operation(summary = "Create payment transaction")
-    public PaymentResponse create(@RequestBody PaymentRequest request) {
+	@PostMapping
+	@Operation(summary = "Create payment transaction")
+	public PaymentResponse create(@RequestBody PaymentRequest request) {
 
-        log.info("POST /api/payments request={}", request);
+		log.info("POST /api/payments request={}", request);
 
-        return service.create(request);
-    }
+		return service.create(request);
+	}
 
-    @GetMapping("/{trxId}")
-    @Operation(summary = "Get payment by trxId")
-    public PaymentTransaction get(@PathVariable String trxId) {
+	@GetMapping("/{trxId}")
+	@Operation(summary = "Get payment by trxId")
+	public PaymentTransaction get(@PathVariable String trxId) {
 
-        log.info("GET /api/payments/{}", trxId);
+		log.info("GET /api/payments/{}", trxId);
 
-        return service.get(trxId);
-    }
+		return service.get(trxId);
+	}
 
-    @GetMapping("/dashboard")
-    @Operation(summary = "Payment dashboard summary")
-    public Map<String, Long> dashboard() {
+	@GetMapping
+	@Operation(summary = "Get all payments (pagination)", description = "Retrieve payment transactions with pagination")
+	public Page<PaymentResponse> getAll(
+			@Parameter() @RequestParam(defaultValue = "0") int page,
 
-        log.info("GET /api/payments/dashboard");
+			@Parameter() @RequestParam(defaultValue = "10") int size) {
+		return service.getAll(page, size);
+	}
 
-        return service.dashboard();
-    }
+	@GetMapping("/dashboard")
+	@Operation(summary = "Payment dashboard summary")
+	public Map<String, Long> dashboard() {
+
+		log.info("GET /api/payments/dashboard");
+
+		return service.dashboard();
+	}
 }

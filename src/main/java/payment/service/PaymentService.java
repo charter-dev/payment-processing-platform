@@ -6,6 +6,11 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -36,6 +41,19 @@ public class PaymentService {
 	private final RedisTemplate<String, Object> redisTemplate;
 //	private final PaymentElasticRepository elasticRepository;
 
+	
+	@Cacheable(
+            value = "payments",
+            key = "'page:' + #page + ':size:' + #size"
+    )
+    public Page<PaymentResponse> getAll(int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+
+        return paymentRepository.findAll(pageable)
+                .map(this::mapToResponse);
+    }
+	
 	public PaymentResponse create(PaymentRequest request) {
 
 	    log.info("START payment process request={}", request);
@@ -132,7 +150,27 @@ public class PaymentService {
 		return data;
 	}
 
+	public Map<String, Long> dashboard() {
 
+		try {
+			return paymentRepository.findAll().stream()
+					.collect(Collectors.groupingBy(PaymentTransaction::getStatus, Collectors.counting()));
+
+		} catch (Exception e) {
+			log.error("DASHBOARD ERROR", e);
+			throw e;
+		}
+	}
+
+	private PaymentResponse mapToResponse(PaymentTransaction p) {
+        return new PaymentResponse(
+                p.getTrxId(),
+                p.getMerchant(),
+                p.getAmount(),
+                p.getStatus()
+        );
+    }
+	
 	private String generateTrxId() {
 		return "TRX-" + System.currentTimeMillis();
 	}
