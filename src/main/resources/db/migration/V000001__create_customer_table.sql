@@ -1,0 +1,7 @@
+CREATE TABLE customer (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    customer_id VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(100),
+    email VARCHAR(100),
+    phone VARCHAR(30)
+);
