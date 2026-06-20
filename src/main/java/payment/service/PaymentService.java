@@ -209,6 +209,24 @@ public class PaymentService {
 	}
 
 	public List<PaymentDocument> paymentdoc(String merchant) {
-		return elasticRepository.findByMerchantContainingIgnoreCase(merchant);
+
+	    try {
+
+	        log.info("SEARCH ELASTIC MERCHANT : {}", merchant);
+
+	        List<PaymentDocument> result =
+	        		elasticRepository
+	                        .findByMerchant(merchant);
+
+	        log.info("TOTAL FOUND : {}", result.size());
+
+	        return result;
+
+	    } catch (Exception e) {
+
+	        log.error("ELASTIC SEARCH ERROR", e);
+
+	        throw e;
+	    }
 	}
 }

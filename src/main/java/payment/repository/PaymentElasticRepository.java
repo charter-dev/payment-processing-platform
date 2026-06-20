@@ -11,7 +11,7 @@ import payment.elastic.PaymentDocument;
 public interface PaymentElasticRepository extends ElasticsearchRepository<PaymentDocument, String> {
 	
 	
-	List<PaymentDocument> findByMerchantContainingIgnoreCase(String merchant);
+	List<PaymentDocument> findByMerchant(String merchant);
 
 	List<PaymentDocument> findByStatus(String status);
 }
