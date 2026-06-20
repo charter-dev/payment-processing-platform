@@ -1,5 +1,6 @@
 package payment.service;
 
+import java.time.ZoneId;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -42,7 +43,9 @@ public class ElasticIndexService {
                 .status(trx.getStatus())
                 .createdDate(
                         trx.getCreatedDate()
-                )
+                           .atZone(ZoneId.systemDefault())
+                           .toInstant()
+                    )
                 .build();
     }
 }
