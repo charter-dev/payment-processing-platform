@@ -12,6 +12,7 @@ Tujuan utama project ini adalah menunjukkan implementasi:
 * Java Stream API
 * Native SQL Query
 * Containerization
+* Microservice di link berikut https://github.com/charter-dev/grpc-microservices-quarkus
 * Event-Driven Architecture
 * Kafka Producer & Consumer
 * Redis Caching Strategy
