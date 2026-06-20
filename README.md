@@ -1,4 +1,3 @@
-# payment-processing-platform
 # Payment Processing Platform
 
 ## Overview
