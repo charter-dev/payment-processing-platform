@@ -1,13 +1,13 @@
 package payment.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,15 +17,18 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import payment.dto.DashboardResponse;
 import payment.dto.PageResponse;
 import payment.dto.PaymentRequest;
 import payment.dto.PaymentResponse;
+import payment.elastic.PaymentDocument;
 import payment.entity.Customer;
 import payment.entity.PaymentTransaction;
 import payment.exception.BusinessException;
 import payment.exception.ResourceNotFoundException;
 import payment.kafka.PaymentEvent;
 import payment.repository.CustomerRepository;
+import payment.repository.PaymentElasticRepository;
 import payment.repository.PaymentRepository;
 
 @Service
@@ -40,30 +43,36 @@ public class PaymentService {
 	
 	private final KafkaTemplate<String, PaymentEvent> kafkaTemplate;
 	private final RedisTemplate<String, Object> redisTemplate;
-//	private final PaymentElasticRepository elasticRepository;
+	private final PaymentElasticRepository elasticRepository;
 
 	
-	@Cacheable(
-            value = "payments",
-            key = "'page:' + #page + ':size:' + #size"
-    )
     public PageResponse<PaymentResponse> getAll(int page, int size) {
-
+		
+		try {
+			log.info("START GET ALL");
 		Pageable pageable = PageRequest.of(page, size);
 
 	    Page<PaymentResponse> result = paymentRepository.findAll(pageable)
 	            .map(this::mapToResponse);
 
-	    List<PaymentResponse> content = result.getContent();
+	    log.info("TOTAL DATA : " + result.getTotalElements());
+	    
 
-	    return new PageResponse<PaymentResponse>(
-	            content,
+	    return new PageResponse<>(
+	    		result.getContent(),
 	            result.getNumber(),
 	            result.getSize(),
 	            result.getTotalElements(),
 	            result.getTotalPages()
 	    );
+	    
+		} catch (Exception e) {
+			log.error("getAll Payment Data ERROR ", e);
+			throw new BusinessException("PAYMENT_DATA_FAILED" , "Failed to retrieve customer data");
+		}
     }
+	
+	
 	
 	public PaymentResponse create(PaymentRequest request) {
 
@@ -184,5 +193,9 @@ public class PaymentService {
 	
 	private String generateTrxId() {
 		return "TRX-" + System.currentTimeMillis();
+	}
+
+	public List<PaymentDocument> paymentdoc(String merchant) {
+		return elasticRepository.findByMerchantContainingIgnoreCase(merchant);
 	}
 }

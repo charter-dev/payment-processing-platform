@@ -1,6 +1,6 @@
 package payment.controller;
 
-import java.util.Map;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,8 +52,7 @@ public class PaymentController {
 
 	@GetMapping
 	@Operation(summary = "Get all payments (pagination)", description = "Retrieve payment transactions with pagination")
-	public PageResponse<PaymentResponse> getAll(
-			@Parameter() @RequestParam(defaultValue = "0") int page,
+	public PageResponse<PaymentResponse> getAll(@Parameter() @RequestParam(defaultValue = "0") int page,
 
 			@Parameter() @RequestParam(defaultValue = "10") int size) {
 		return service.getAll(page, size);

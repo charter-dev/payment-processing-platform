@@ -1,5 +1,6 @@
 package payment.dto;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
@@ -9,9 +10,13 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
-public class PaymentResponse {
+public class PaymentResponse implements Serializable{
 
-    private String trxId;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String trxId;
     private String merchant;
     private BigDecimal amount;
     private String status;

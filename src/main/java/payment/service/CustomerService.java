@@ -1,11 +1,8 @@
 package payment.service;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,30 +27,29 @@ public class CustomerService {
 
 	private final CustomerRepository repository;
 	private final RedisTemplate<String, Object> redisTemplate;
-	
-	@Cacheable(
-            value = "customers",
-            key = "'page:' + #page + ':size:' + #size"
-    )
-    public PageResponse<CustomerResponse> getAll(int page, int size) {
 
-		Pageable pageable = PageRequest.of(page, size);
 
-	    Page<CustomerResponse> result = repository.findAll(pageable)
-	            .map(this::mapToResponse);
+	public PageResponse<CustomerResponse> getAll(int page, int size) {
 
-	    List<CustomerResponse> content = result.getContent();
+		try {
+			log.info("START GET ALL");
 
-	    return new PageResponse<CustomerResponse>(
-	            content,
-	            result.getNumber(),
-	            result.getSize(),
-	            result.getTotalElements(),
-	            result.getTotalPages()
-	    );
-    }
+			Pageable pageable = PageRequest.of(page, size);
 
-	 @CacheEvict(value = "customers", allEntries = true)
+			Page<CustomerResponse> result = repository.findAll(pageable).map(this::mapToResponse);
+
+			log.info("TOTAL DATA : " + result.getTotalElements());
+
+			return new PageResponse<>(result.getContent(), result.getNumber(), result.getSize(),
+					result.getTotalElements(), result.getTotalPages());
+		} catch (Exception e) {
+			log.error("getAll Customer ERROR ", e);
+			throw new BusinessException("CUSTOMER_FAILED" , "Failed to retrieve customer data");
+		}
+
+	}
+
+	@CacheEvict(value = "customers", allEntries = true)
 	public CustomerResponse create(CustomerRequest request) {
 
 		log.info("START create customer request={}", request);
@@ -75,7 +71,7 @@ public class CustomerService {
 		return CustomerResponse.builder().customerId(saved.getCustomerId()).name(saved.getName())
 				.email(saved.getEmail()).build();
 	}
-
+	
 	public CustomerResponse getByCustomerId(String customerId) {
 
 		try {
@@ -108,15 +104,10 @@ public class CustomerService {
 		return CustomerResponse.builder().customerId(c.getCustomerId()).name(c.getName()).email(c.getEmail()).build();
 	}
 
-	 private CustomerResponse mapToResponse(Customer c) {
-	        return new CustomerResponse(
-	                c.getCustomerId(),
-	                c.getName(),
-	                c.getEmail(),
-	                c.getPhone()
-	        );
-	    }
-	
+	private CustomerResponse mapToResponse(Customer c) {
+		return new CustomerResponse(c.getCustomerId(), c.getName(), c.getEmail(), c.getPhone());
+	}
+
 	private String generateCustId() {
 		return "CUST-" + System.currentTimeMillis();
 	}

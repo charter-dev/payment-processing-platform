@@ -1,6 +1,5 @@
 package payment.controller;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,43 +26,33 @@ import payment.service.CustomerService;
 @Tag(name = "Customer API", description = "Customer Management System")
 public class CustomerController {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(CustomerController.class);
+	private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
 
-    private final CustomerService service;
+	private final CustomerService service;
 
-    @PostMapping
-    @Operation(summary = "Create customer")
-    public CustomerResponse create(@Valid @RequestBody CustomerRequest request) {
+	@PostMapping
+	@Operation(summary = "Create customer")
+	public CustomerResponse create(@Valid @RequestBody CustomerRequest request) {
 
-        log.info("POST /api/customers request={}", request);
+		log.info("POST /api/customers request={}", request);
 
-        return service.create(request);
-    }
+		return service.create(request);
+	}
 
-    @GetMapping("/{customerId}")
-    @Operation(summary = "Get customer by customerId")
-    public CustomerResponse get(@PathVariable String customerId) {
+	@GetMapping("/{customerId}")
+	@Operation(summary = "Get customer by customerId")
+	public CustomerResponse get(@PathVariable String customerId) {
 
-        log.info("GET /api/customers/{}", customerId);
+		log.info("GET /api/customers/{}", customerId);
 
-        return service.getByCustomerId(customerId);
-    }
-    
-    @GetMapping
-    @Operation(
-            summary = "Get all customers (pagination)"
-//            ,description = "Retrieve customer data with pagination support"
-    )
-    public PageResponse<CustomerResponse> getAll(
-            @Parameter()
-            @RequestParam(defaultValue = "0") int page,
+		return service.getByCustomerId(customerId);
+	}
 
-            @Parameter()
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        return service.getAll(page, size);
-    }
+	@GetMapping
+	@Operation(summary = "Get all customers (pagination)")
+	public PageResponse<CustomerResponse> getAll(@Parameter() @RequestParam(defaultValue = "0") int page,
+			@Parameter() @RequestParam(defaultValue = "10") int size) {
+		return service.getAll(page, size);
+	}
 
-  
 }
