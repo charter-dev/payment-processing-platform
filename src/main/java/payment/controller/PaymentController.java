@@ -22,6 +22,7 @@ import payment.dto.PaymentRequest;
 import payment.dto.PaymentResponse;
 import payment.elastic.PaymentDocument;
 import payment.entity.PaymentTransaction;
+import payment.service.ElasticIndexService;
 import payment.service.PaymentService;
 
 @RestController
@@ -33,6 +34,7 @@ public class PaymentController {
 	private static final Logger log = LoggerFactory.getLogger(PaymentController.class);
 
 	private final PaymentService service;
+	private final ElasticIndexService elasticIndexService;
 
 	@PostMapping
 	@Operation(summary = "Create payment transaction")
@@ -77,5 +79,12 @@ public class PaymentController {
 
 		return service.paymentdoc(merchant);
 
+	}
+	
+	@PostMapping("/reindex")
+	@Operation(summary = "Index Payment doc Elastic setelah pakai fly away")
+	public String reindex() {
+
+		return elasticIndexService.reindexAll();
 	}
 }
