@@ -12,4 +12,6 @@ public interface PaymentElasticRepository extends ElasticsearchRepository<Paymen
 	
 	
 	List<PaymentDocument> findByMerchantContainingIgnoreCase(String merchant);
+
+	List<PaymentDocument> findByStatus(String status);
 }

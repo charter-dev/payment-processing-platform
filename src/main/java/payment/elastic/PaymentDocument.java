@@ -1,6 +1,7 @@
 package payment.elastic;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -12,9 +13,9 @@ import lombok.NoArgsConstructor;
 
 @Document(indexName = "payments")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class PaymentDocument {
 
     @Id
@@ -27,4 +28,6 @@ public class PaymentDocument {
     private BigDecimal amount;
 
     private String status;
+
+    private LocalDateTime createdDate;
 }

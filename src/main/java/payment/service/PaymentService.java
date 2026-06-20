@@ -135,7 +135,7 @@ public class PaymentService {
 	    }
 
 	    return PaymentResponse.builder()
-	            .trxId(saved.getTrxId())
+	            .trxId(saved.getTrxId()).amount(saved.getAmount()).merchant(saved.getMerchant())
 	            .status(saved.getStatus())
 	            .build();
 	}
