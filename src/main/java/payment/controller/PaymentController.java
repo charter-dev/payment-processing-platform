@@ -16,9 +16,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import payment.dto.DashboardResponse;
 import payment.dto.PageResponse;
 import payment.dto.PaymentRequest;
 import payment.dto.PaymentResponse;
+import payment.elastic.PaymentDocument;
 import payment.entity.PaymentTransaction;
 import payment.service.PaymentService;
 
@@ -60,10 +62,20 @@ public class PaymentController {
 
 	@GetMapping("/dashboard")
 	@Operation(summary = "Payment dashboard summary")
-	public Map<String, Long> dashboard() {
+	public DashboardResponse dashboard() {
 
 		log.info("GET /api/payments/dashboard");
 
 		return service.dashboard();
+	}
+
+	@GetMapping("/search")
+	@Operation(summary = "Search Payment doc Elastic")
+	public List<PaymentDocument> search(@RequestParam String merchant) {
+
+		log.info("GET /api/payments/search");
+
+		return service.paymentdoc(merchant);
+
 	}
 }

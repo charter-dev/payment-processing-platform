@@ -170,16 +170,29 @@ public class PaymentService {
 		return data;
 	}
 
-	public Map<String, Long> dashboard() {
+	public DashboardResponse dashboard() {
 
-		try {
-			return paymentRepository.findAll().stream()
-					.collect(Collectors.groupingBy(PaymentTransaction::getStatus, Collectors.counting()));
+		List<PaymentTransaction> transactions = paymentRepository.findAll();
 
-		} catch (Exception e) {
-			log.error("DASHBOARD ERROR", e);
-			throw e;
-		}
+		long totalTransaction = transactions.stream().count();
+
+		BigDecimal totalAmount = transactions.stream().map(PaymentTransaction::getAmount).reduce(BigDecimal.ZERO,
+				BigDecimal::add);
+
+		BigDecimal averageAmount = totalTransaction > 0
+				? totalAmount.divide(BigDecimal.valueOf(totalTransaction), 2, RoundingMode.HALF_UP)
+				: BigDecimal.ZERO;
+
+		Map<String, Long> transactionByStatus = transactions.stream()
+				.collect(Collectors.groupingBy(PaymentTransaction::getStatus, Collectors.counting()));
+
+		Map<String, BigDecimal> amountByMerchant = transactions.stream()
+				.collect(Collectors.groupingBy(PaymentTransaction::getMerchant,
+						Collectors.reducing(BigDecimal.ZERO, PaymentTransaction::getAmount, BigDecimal::add)));
+
+		return DashboardResponse.builder().totalTransaction(totalTransaction).totalAmount(totalAmount)
+				.averageAmount(averageAmount).transactionByStatus(transactionByStatus)
+				.amountByMerchant(amountByMerchant).build();
 	}
 
 	private PaymentResponse mapToResponse(PaymentTransaction p) {
